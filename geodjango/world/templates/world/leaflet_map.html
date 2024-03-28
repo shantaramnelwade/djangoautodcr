@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaflet Map with GeoServer Layers</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+
+    #map {
+        height: 80%;
+    }
+
+    .layer-control {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        transition: max-height 0.5s;
+    }
+
+    .layer-control.collapsed {
+        max-height: 0;
+        overflow: hidden;
+    }
+
+    .layer-control-toggle {
+        cursor: pointer;
+    }
+
+    .layer-item {
+        margin-bottom: 10px;
+    }
+
+    .layer-name {
+        font-weight: bold;
+    }
+
+    .layer-transparency {
+        width: 100%;
+    }
+
+<!--    for dropdown-->
+
+
+
+      .custom-control {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        background-color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="layer-control">
+    <div class="layer-control-toggle" onclick="toggleLayerControl()">Layers</div>
+    <div class="layer-control-content">
+        {% for layer_name in layer_names %}
+        <div class="layer-item">
+            <label>
+                <input type="checkbox" class="layer-checkbox" data-layer="{{ layer_name }}" checked> {{ layer_name }}
+            </label>
+            <input type="range" class="layer-transparency" data-layer="{{ layer_name }}" min="0" max="1" step="0.1" value="1">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!--add village dropdown-->
+
+<div id="dropdown-control" class="custom-control">
+    <form id="filter-form" method="post">
+        {% csrf_token %}
+        <select id="village-select" name="village">
+            {% for village in villages %}
+            <option value="{{ village }}">{{ village }}</option>
+            {% endfor %}
+        </select>
+        <select id="gut-select" name="gut">
+            <!-- Options will be dynamically populated based on village selection -->
+        </select>
+        <button type="submit">Filter</button>
+        <button id="zoom-btn" type="button">Zoom</button>
+    </form>
+</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([18.5204, 73.8567], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var layers = {};
+    var checkboxes = document.getElementsByClassName('layer-checkbox');
+    var opacityControls = document.getElementsByClassName('layer-transparency');
+
+    // Add GeoServer layers from 'pmc' workspace
+    for (var i = 0; i < checkboxes.length; i++) {
+        var layerName = checkboxes[i].getAttribute('data-layer');
+        var wmsLayer = L.tileLayer.wms('https://pmc.geopulsea.com/geoserver/wms', {
+            layers: 'pmc:' + layerName,
+            format: 'image/png',
+            transparent: true,
+            tiled:true,
+            attribution: 'GeoServer PMC',
+            opacity: parseFloat(opacityControls[i].value)
+        }).addTo(map);
+        layers[layerName] = wmsLayer;
+
+        // Checkbox change event listener
+        checkboxes[i].addEventListener('change', function() {
+            var layer = layers[this.getAttribute('data-layer')];
+            if (this.checked) {
+                map.addLayer(layer);
+            } else {
+                map.removeLayer(layer);
+            }
+        });
+
+        // Opacity control event listener
+        opacityControls[i].addEventListener('input', function() {
+            var layer = layers[this.getAttribute('data-layer')];
+            layer.setOpacity(parseFloat(this.value));
+        });
+    }
+
+    function toggleLayerControl() {
+        var layerControl = document.querySelector('.layer-control');
+        layerControl.classList.toggle('collapsed');
+    }
+
+
+// <!--    added for poopulate village dropdown-->
+
+
+var wmsLayer = L.tileLayer.wms('https://pmc.geopulsea.com/geoserver/wms', {
+        layers: 'pmc:Revenue',
+        format: 'image/png',
+        transparent: true,
+        tiled:true,
+        attribution: 'GeoServer PMC'
+    }).addTo(map);
+
+    // Function to fetch and populate the "Gut_No" dropdown based on the selected village
+    function populateGutDropdown(village) {
+        fetch(`https://pmc.geopulsea.com/geoserver/pmc/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pmc:Revenue&propertyName=Gut_No&outputFormat=application/json&CQL_FILTER=Village_Name='${village}'`)
+            .then(response => response.json())
+            .then(data => {
+                var guts = data.features.map(feature => feature.properties.Gut_No);
+                var uniqueGuts = [...new Set(guts)];
+                var gutSelect = document.getElementById('gut-select');
+                gutSelect.innerHTML = '';
+                uniqueGuts.forEach(gut => {
+                    var option = document.createElement('option');
+                    option.value = gut;
+                    option.text = gut;
+                    gutSelect.appendChild(option);
+                });
+            });
+    }
+
+    // Event listener for village selection
+    document.getElementById('village-select').addEventListener('change', function() {
+        var selectedVillage = this.value;
+        populateGutDropdown(selectedVillage);
+    });
+
+    // Event listener for zoom button
+    document.getElementById('zoom-btn').addEventListener('click', function() {
+        document.getElementById('filter-form').submit();
+    });
+
+
+
+
+
+
+// Function to update the WMS layer with the selected village and gut
+function updateWMSLayer(village, gut) {
+    var newParams = {
+        CQL_FILTER: "Village_Name='" + village + "' AND Gut_No='" + gut + "'"
+    };
+    wmsLayer.setParams(newParams);
+    wmsLayer.redraw();
+}
+
+// Event listener for form submission
+document.getElementById('filter-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    var selectedVillage = document.getElementById('village-select').value;
+    var selectedGut = document.getElementById('gut-select').value;
+
+    updateWMSLayer(selectedVillage, selectedGut);
+});
+
+
+
+
+
+
+</script>
+</body>
+</html>

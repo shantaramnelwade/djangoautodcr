@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leaflet Map with WMS Layer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map("map", {}).setView([18.52, 73.895], 12, L.CRS.EPSG4326);
+
+        var googleSat = L.tileLayer(
+            "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+            {
+                maxZoom: 20,
+                subdomains: ["mt0", "mt1", "mt2", "mt3"],
+            }
+        );
+
+        var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            // attribution:
+            //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        var Esri_WorldImagery = L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                // attribution:
+                //   "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+            }
+        );
+        // <!-- -----------------layer displayed------------------------ -->
+
+        var baseLayers = {};
+
+        var wmsLayer = L.tileLayer('{{ wms_url }}', { layers: 'pmc:PMC_Layers' }).addTo(map);
+
+
+
+        var WMSlayers = {
+            OpenStreetMap: osm,
+            "Esri World Imagery": Esri_WorldImagery,
+            "Google Satellite": googleSat,
+            PMC_Layers: wmsLayer,
+        };
+
+        var control = new L.control.layers(baseLayers, WMSlayers).addTo(map);
+    </script>
+</body>
+
+</html>

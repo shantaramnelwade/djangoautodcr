@@ -1,7 +1,7 @@
 
 var map, geojson;
 // const API_URL = "http://localhost/autodcr/";
-/
+
 var map = L.map("map", {}).setView([18.52, 73.895], 12, L.CRS.EPSG4326);
 
 var googleSat = L.tileLayer(
@@ -538,8 +538,10 @@ document.getElementById('coordinateForm').addEventListener('submit', function (e
 
 });
 
+
 function savevalues() {
     console.log(drawnPolygons, "drawnPolygons")
+    var coordinates = drawnPolygons
     Object.keys(drawnPolygons).forEach(function (polygonId) {
         // checkBoxGutVillage();
         var coordinates = drawnPolygons[polygonId];
@@ -558,12 +560,35 @@ function savevalues() {
         localStorage.setItem('coordinates', JSON.stringify(coordinates));
 
 
-
     });
-    window.location.href = 'data.html';
 
-    // alert("heheeh");
+          
+    alert("savings")
+
+    $.ajax({
+        type: 'POST',
+        url: '/save_data/', // Endpoint URL for saving data
+        data: {
+            'coordinates': JSON.stringify(coordinates), // Send polygon coordinates as JSON string
+            'village_name': 'Your Village Name', // Replace 'Your Village Name' with actual village name
+            'TPS_Name': 'Your TPS Name', // Replace 'Your TPS Name' with actual TPS name
+            'Gut_No': 'Your Gut Number', // Replace 'Your Gut Number' with actual Gut number
+            'geom': 'Your Geometry' // Replace 'Your Geometry' with actual geometry
+        },
+        success: function (response) {
+            console.log(response);
+        },
+        error: function (error) {
+            console.error(error);
+        }
+    });
+
+
+    // window.location.href = 'data.html';
+
+    alert("heheeh");
 };
+
 
 function IntersectAreaWithPolygon(drawnPolygon, layers, url, propertyName, bounds, outputFormat) {
     layers.forEach(function (layerName) {

@@ -1,42 +1,40 @@
 from django.shortcuts import render
 
-# Create your views here.
-
-
 from django.http import JsonResponse
-from .models import Villages
-
-def get_villages(request):
-    print("hehe")
-    # villagess = Villages.objects.all()
-    # geojson_data = {
-    #     'type': 'FeatureCollection',
-    #     'features': []
-    # }
-    # for village1 in villagess:
-    #     feature = {
-    #         'type': 'Feature',
-    #         'geometry': village1.geom.geojson,
-    #         'properties': {
-    #             'name': village1.village
-    #         }
-    #     }
-    #     geojson_data['features'].append(feature)
-    # return JsonResponse(geojson_data)
-
-
+# from .models import Villages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+# views.py
 from django.shortcuts import render
+from django.http import JsonResponse
+from .models import PolygonData
+import json
 
-def get_wms_data(request):
-    # GeoServer WMS URL
-    wms_url = 'https://geo.geopulsea.com/geoserver/wms'
 
-    # Pass the WMS URL to the template context
-    context = {
-        'wms_url': wms_url,
-    }
 
-    return render(request, 'world/map.html', context)
+
+def save_data(request):
+    if request.method == 'POST':
+        coordinates = json.loads(request.POST.get('coordinates'))
+        village_name = request.POST.get('village_name')
+        TPS_Name = request.POST.get('TPS_Name')
+        Gut_No = request.POST.get('Gut_No')
+        geom = request.POST.get('geom')
+        print(coordinates,"coordinates")
+
+        # Save the data to the database
+        polygon_data = PolygonData.objects.create(
+            coordinates=json.dumps(coordinates),
+            village_name=village_name,
+            TPS_Name=TPS_Name,
+            Gut_No=Gut_No,
+            geom=geom
+        )
+        polygon_data.save()
+
+        return JsonResponse({'message': 'Data saved successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 def index(request):

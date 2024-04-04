@@ -20,4 +20,14 @@ class Villages(models.Model):
 
     def __str__(self):
         return self.village
+    
+
+
+class PolygonData(models.Model):
+    coordinates = models.TextField()
+    village_name = models.CharField(max_length=255)
+    TPS_Name = models.CharField(max_length=255)
+    Gut_No = models.CharField(max_length=255)
+    geom = models.GeometryField()
+
 

@@ -1,0 +1,35 @@
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: 0;
+  }
+  
+/* for button map start */
+.custom-button {
+    position: absolute;
+    top: 50%;
+    right: 50%;
+    z-index: 1000; /* Ensure the button is above other map elements */
+    background-color: green;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 2px solid green;
+  }
+  
+  .custom-button button {
+    background-color:green;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    border: none;
+   
+  }
+  
+  
+  

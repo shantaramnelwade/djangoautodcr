@@ -356,3 +356,28 @@ input[type="checkbox"] {
   top: 2px;
   left: -5%;
 }
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position:absolute;
+  z-index: 99999;
+  /* margin: 0 auto; */
+  left: 50%;
+  top : 10%
+}
+
+.accordion-item {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  background-color: #f1f1f1;
+  padding: 10px;
+  cursor: pointer;
+}
+
+

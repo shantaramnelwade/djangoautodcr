@@ -1,5 +1,7 @@
 
- var map = L.map('map').setView([18.5204, 73.8567], 12);
+var map = L.map('map').setView([18.5204, 73.8567], 12);
+
+var marker;
 
 var googleSat = L.tileLayer(
     "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
@@ -40,13 +42,29 @@ var Revenue_Layer1 = L.tileLayer
         opacity: 1,
     });
 
+var world_photo = L.tileLayer
+    .wms("http://localhost:8080/geoserver/pmc/wms", {
+        layers: "world_photo",
+        format: "image/png",
+        transparent: true,
+        tiled: true,
+        version: "1.1.0",
+        opacity: 1,
+    }).addTo(map);
+
 var WMSlayers = {
     "OSM": osm,
     "Esri": Esri_WorldImagery,
     "Satellite": googleSat,
     Revenue: Revenue_Layer,
     Roads: Revenue_Layer1,
+    photo: world_photo,
 };
+
+
+
+
+getLocation()
 
 var control = new L.control.layers(baseLayers, WMSlayers).addTo(map);
 control.setPosition('topright');
@@ -63,80 +81,177 @@ button.onAdd = function (map) {
 button.addTo(map);
 
 
-function uploadphoto(){
-    alert("heheh")
-    // alert("heheh");
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function (stream) {
-            var video = document.createElement('video');
-            video.srcObject = stream;
-            video.play();
 
-            var captureButton = document.createElement('button');
-            captureButton.textContent = 'Capture Photo';
-            captureButton.onclick = function () {
-                var canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                var img = document.createElement('img');
-                img.src = canvas.toDataURL('image/jpeg');
 
-                var saveButton = document.createElement('button');
-                saveButton.textContent = 'Save';
-                saveButton.onclick = function () {
-                    var formData = new FormData();
-                    formData.append('photo', canvas.toDataURL('image/jpeg'));
+var layers = ["pmc:world_photo", "pmc:Roads", "pmc:Reservations"]
+map.on("click", (e) => {
+    let bbox = map.getBounds().toBBoxString();
+    let size = map.getSize();
+    for (let i = 0; i < layers.length; i++) {
+        let layer = layers[i];
+        let url = `http://localhost:8080/geoserver/pmc/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=${layer}&STYLES&LAYERS=${layer}&exceptions=application%2Fvnd.ogc.se_inimage&INFO_FORMAT=application/json&FEATURE_COUNT=50&X=${Math.round(
+            e.containerPoint.x
+        )}&Y=${Math.round(e.containerPoint.y)}&SRS=EPSG%3A4326&WIDTH=${size.x
+            }&HEIGHT=${size.y}&BBOX=${bbox}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.features && data.features.length > 0) {
+                    console.log(data.features)
+                    const feature = data.features[0];
+                    const idd = feature.id
+                    let html = "<div>";
+                    var formData1 = new FormData();
+                    formData1.append('idd', idd)
 
+                    const properties = feature.properties;
+
+                    console.log(properties, "properties", idd)
                     var csrftoken = getCookie('csrftoken');
-
                     $.ajax({
-                        url: '/save_photo/',
+                        url: '/get_photo/',
                         type: 'POST',
-                        beforeSend: function(xhr, settings) {
+                        beforeSend: function (xhr, settings) {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
-                        data: formData,
+                        data: formData1,
                         processData: false,
                         contentType: false,
-                        success: function(data) {
+                        success: function (data) {
                             console.log('Photo saved successfully:', data);
+
+                            let html = "<div>";
+
+                            // Create a Blob from the Base64-encoded image data
+                            const blob = new Blob([data.image_data], { type: 'image/png' });
+                            // Create a URL for the Blob
+                            console.log(blob,"blob")
+                            const imageUrl = URL.createObjectURL(blob);
+                            // Add the image to the popup content
+                            html += ` <img src="data:image/png;base64,${ data.image_data }" alt="Image"></img>`;
+                           
+
+                            // Add other properties to the popup content
+                            // for (let key in properties) {
+                            //     if (key !== "image_data") {
+                            //         html += `<p>${key}: ${properties[key]}</p>`;
+                            //     }
+                            // }
+                            // html += `<p>${key}: ${properties[key]}</p>`;
+
+                            html += "</div>";
+                            console.log(html)
+                            L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
                         },
-                        error: function(xhr, status, error) {
-                            console.error('Error saving photo:', error);
-                        }
+
                     });
-                };
+                }
+            });
+    };
+});
 
-                var popupContent = document.createElement('div');
-                popupContent.appendChild(img);
-                popupContent.appendChild(saveButton);
 
-                var popup = L.popup().setContent(popupContent);
-                L.marker(map.getCenter()).addTo(map).bindPopup(popup).openPopup();
+function uploadphoto() {
 
-                // Close the stream when the popup is closed
-                popup.on('remove', function () {
-                    stream.getTracks().forEach(function (track) {
-                        track.stop();
-                    });
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            var latLng = L.latLng(latitude, longitude);
+            console.log(latLng)
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    var video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+
+                    var captureButton = document.createElement('button');
+                    captureButton.textContent = 'Capture Photo';
+                    captureButton.onclick = function () {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        var img = document.createElement('img');
+                        img.src = canvas.toDataURL('image/jpeg');
+
+                        var saveButton = document.createElement('button');
+                        saveButton.textContent = 'Save';
+                        saveButton.onclick = function () {
+                            var formData = new FormData();
+                            formData.append('image_data', canvas.toDataURL('image/jpeg'));
+                            formData.append('latitude', latitude)
+                            formData.append('longitude', longitude)
+
+
+                            var csrftoken = getCookie('csrftoken');
+
+                            $.ajax({
+                                url: '/save_photo/',
+                                type: 'POST',
+                                beforeSend: function (xhr, settings) {
+                                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                                },
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (data) {
+                                    console.log('Photo saved successfully:', data);
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Error saving photo:', error);
+                                }
+                            });
+
+                            function getCookie(name) {
+                                var cookieValue = null;
+                                if (document.cookie && document.cookie !== '') {
+                                    var cookies = document.cookie.split(';');
+                                    for (var i = 0; i < cookies.length; i++) {
+                                        var cookie = cookies[i].trim();
+                                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                            break;
+                                        }
+                                    }
+                                }
+                                return cookieValue;
+                            }
+                        };
+
+                        var popupContent = document.createElement('div');
+                        popupContent.appendChild(img);
+                        popupContent.appendChild(saveButton);
+
+                        var popup = L.popup().setContent(popupContent);
+                        L.marker(latLng).addTo(map).bindPopup(popup).openPopup();
+
+                        // Close the stream when the popup is closed
+                        popup.on('remove', function () {
+                            stream.getTracks().forEach(function (track) {
+                                track.stop();
+                            });
+                        });
+                    };
+
+                    var popupContent = document.createElement('div');
+                    popupContent.appendChild(video);
+                    popupContent.appendChild(captureButton);
+
+                    var popup = L.popup().setContent(popupContent);
+                    L.marker(latLng).addTo(map).bindPopup(popup).openPopup();
+                })
+                .catch(function (err) {
+                    console.error('Error accessing the camera:', err);
                 });
-            };
-
-            var popupContent = document.createElement('div');
-            popupContent.appendChild(video);
-            popupContent.appendChild(captureButton);
-
-            var popup = L.popup().setContent(popupContent);
-            L.marker(map.getCenter()).addTo(map).bindPopup(popup).openPopup();
-        })
-        .catch(function (err) {
-            console.error('Error accessing the camera:', err);
-        });
+        }
 
 
+    )
 }
+
 
 function getCookie(name) {
     var cookieValue = null;
@@ -151,4 +266,68 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                console.log('User location:', position.coords.latitude, position.coords.longitude);
+                // You can send this location to your Django backend if needed
+            },
+            function (error) {
+                console.error('Error getting user location:', error);
+            }
+        );
+    } else {
+        console.error('Geolocation is not supported by this browser');
+    }
+});
+
+navigator.geolocation.getCurrentPosition(
+    function (position) {
+        console.log('User location:', position.coords.latitude, position.coords.longitude);
+        // You can send this location to your Django backend if needed
+    },
+    function (error) {
+        console.error('Error getting user location:', error);
+    },
+    { enableHighAccuracy: true }
+);
+
+let watchId = navigator.geolocation.watchPosition(
+    function (position) {
+        console.log('User location:', position.coords.latitude, position.coords.longitude);
+        // You can send this location to your Django backend if needed
+    },
+    function (error) {
+        console.error('Error getting user location:', error);
+    },
+    { enableHighAccuracy: true }
+);
+
+
+// show location on map
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function showPosition(position) {
+    var lat = position.coords.latitude;
+    var lng = position.coords.longitude;
+    var newLatLng = new L.LatLng(lat, lng);
+
+    if (marker) {
+        marker.setLatLng(newLatLng);
+    } else {
+        marker = L.marker(newLatLng).addTo(map);
+    }
+
+    map.setView(newLatLng, 13);
 }

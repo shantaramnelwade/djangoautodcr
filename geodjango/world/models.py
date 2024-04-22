@@ -32,10 +32,13 @@ class PolygonData(models.Model):
 
 
 from django.db import models
+from django.contrib.gis.db import models
 
 class Photo(models.Model):
     # image = models.ImageField(upload_to='images/')
     image_data = models.BinaryField()
+    clicked_points = models.PointField()
+    
     # image_data = models.TextField(blank=True)
 
     # def __str__(self):

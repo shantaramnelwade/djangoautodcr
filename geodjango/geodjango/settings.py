@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'geodjango.wsgi.application'
 DATABASES = {
      'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'abc',
+        'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': '123',
         'HOST': 'localhost',

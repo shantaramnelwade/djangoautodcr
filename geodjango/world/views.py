@@ -16,7 +16,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import JsonResponse
 import base64
 import io
-# from .models import ImageModel
+from django.contrib.gis.geos import Point
 
 
 
@@ -85,7 +85,6 @@ def leaflet_map(request):
     if request.method == 'POST':
         selected_village = request.POST.get('village', '')
         selected_gut = request.POST.get('gut', '')
-        # Perform filtering on the WMS layer based on the selected village and gut
 
     context = {
         'villages': villages,
@@ -100,51 +99,6 @@ def geotagPhoto(request):
 
     return render(request, 'geotag.html')
 
-
-
-
-# def save_photo(request):
-#     print("111111111111")
-#     # if request.method == 'POST':
-#     #     print("222222222222")
-#     #     # Assuming the base64 image is sent in the request body as 'image_data'
-#     #     image_data = request.POST.get('photo', '')
-#     #     if image_data:
-#     #         print("3333333333333")
-#     #         # Remove the 'data:image/jpeg;base64,' prefix
-#     #         format, imgstr = image_data.split(';base64,')
-#     #         ext = format.split('/')[-1]
-
-#     #         # Decode base64 string into binary data
-#     #         binary_data = base64.b64decode(imgstr)
-
-#     #         # Create an InMemoryUploadedFile object
-#     #         image_file = InMemoryUploadedFile(io.BytesIO(binary_data), None, f'image.{ext}', 'image/jpeg', len(binary_data), None)
-#     #         print("5555555555")
-
-#     #         # Save the image to a model
-#     #         # For example, assuming you have a model named ImageModel with an ImageField named 'image'
-#     #         image_model = Photo(image=image_file)
-#     #         image_model.save()
-
-#     #         return JsonResponse({'message': 'Image saved successfully'})
-#     #     else:
-#     #         return JsonResponse({'error': 'No image data found'}, status=400)
-#     # else:
-#     #     return JsonResponse({'error': 'Invalid request method'}, status=405)
-#     if request.method == 'POST' :
-#         image_file = request.FILES.get('photo')
-#         image_data = image_file.read()
-#         image_model = Photo(image_data=image_data)
-#         image_model.save()
-#         # image_data1 = request.POST.get('photo', '')
-#         # photo_data = request.FILES.get('photo').read()
-#         # photo = Photo(image_data=image_data1)
-#         # print(photo, "photo")
-#         # photo.save()
-#         return JsonResponse({'message': 'Photo saved successfully'})
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
-
 from django.http import JsonResponse
 from .models import Photo
 from io import BytesIO
@@ -152,16 +106,36 @@ from PIL import Image
 import base64
 from base64 import b64encode
 
+from django.core.files.base import ContentFile
+import base64
+from .models import Photo
+import tempfile
+import os
+import re
+
 def save_photo(request):
     if request.method == 'POST':
-        image_data = request.POST.get('photo', '')
+        image_data = request.POST.get('image_data', '')
+        longitude = request.POST.get('longitude')
+        latitude = request.POST.get('latitude')
+        print(longitude)
         if image_data:
             try:
                 format, imgstr = image_data.split(';base64,')
-                ext = format.split('/')[-1] 
+                ext = format.split('/')[-1]
                 data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-                image_model = Photo(image_data=data)
-                image_model.save()
+
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(data.read())
+                    temp_file.close()
+                    with open(temp_file.name, 'rb') as f:
+                        image_data = f.read()
+                    clicked_point = Point(float(longitude), float(latitude))
+                    photo = Photo(image_data=image_data,clicked_points = clicked_point )
+                    photo.save()
+                    print("saved")
+
+                print(data)
                 return JsonResponse({'message': 'Image saved successfully'})
             except Exception as e:
                 return JsonResponse({'error': str(e)}, status=400)
@@ -169,6 +143,26 @@ def save_photo(request):
             return JsonResponse({'error': 'No image data found'}, status=400)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+
+def get_photo(request):
+    if request.method == 'POST':
+        data = request.POST.get('idd')
+        print(data,"image_data")
+        id = re.sub(r'\D','',str(data))
+        print(id,"oooooooooo")
+        try:
+            world_photo = Photo.objects.get(id=id)
+            image_data_bytes = bytes(world_photo.image_data)
+            image_data_base64 = base64.b64encode(image_data_bytes).decode('utf-8')
+            return JsonResponse({'image_data': image_data_base64})
+        except Photo.DoesNotExist:
+            return JsonResponse({'error': 'WorldPhoto not found'}, status=404)
+     
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 
 

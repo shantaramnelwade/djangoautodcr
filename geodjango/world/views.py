@@ -118,6 +118,8 @@ def save_photo(request):
         image_data = request.POST.get('image_data', '')
         longitude = request.POST.get('longitude')
         latitude = request.POST.get('latitude')
+        clongitude = request.POST.get('clongitude')
+        clatitude = request.POST.get('clatitude')
         print(longitude)
         if image_data:
             try:
@@ -131,7 +133,8 @@ def save_photo(request):
                     with open(temp_file.name, 'rb') as f:
                         image_data = f.read()
                     clicked_point = Point(float(longitude), float(latitude))
-                    photo = Photo(image_data=image_data,clicked_points = clicked_point )
+                    cfeature = Point(float(clongitude), float(clatitude))
+                    photo = Photo(image_data=image_data,clicked_points = clicked_point,feature=cfeature )
                     photo.save()
                     print("saved")
 
@@ -144,7 +147,8 @@ def save_photo(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
 
 def get_photo(request):
     if request.method == 'POST':
@@ -155,8 +159,15 @@ def get_photo(request):
         try:
             world_photo = Photo.objects.get(id=id)
             image_data_bytes = bytes(world_photo.image_data)
+            clicked_points = world_photo.clicked_points.coords
+            # features = world_photo.feature.coords
+            # if clicked_points and features:
+            #     distance = clicked_points.distance(features)
+            #     print(distance,"distance")
+            x, y = clicked_points
             image_data_base64 = base64.b64encode(image_data_bytes).decode('utf-8')
-            return JsonResponse({'image_data': image_data_base64})
+
+            return JsonResponse({'image_data': image_data_base64,'X':x,'Y':y})
         except Photo.DoesNotExist:
             return JsonResponse({'error': 'WorldPhoto not found'}, status=404)
      

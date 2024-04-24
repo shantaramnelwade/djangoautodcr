@@ -38,6 +38,8 @@ class Photo(models.Model):
     # image = models.ImageField(upload_to='images/')
     image_data = models.BinaryField()
     clicked_points = models.PointField()
+    feature = models.PointField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     
     # image_data = models.TextField(blank=True)
 

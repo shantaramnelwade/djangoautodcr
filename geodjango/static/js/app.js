@@ -65,8 +65,8 @@ var roads = L.tileLayer
         version: "1.1.0",
         maxZoom: 21,
         opacity: 1,
-    })
-    .addTo(map);
+    });
+// .addTo(map);
 
 var WMSlayers = {
     OSM: osm,
@@ -78,23 +78,37 @@ var WMSlayers = {
     roads: roads,
 };
 
-getLocation();
+// getLocation();
+
+// L.control.layers(baseLayers, overlayLayers).addTo(map);
 
 var control = new L.control.layers(baseLayers, WMSlayers).addTo(map);
 control.setPosition("topright");
 
-var button = L.control();
 
-button.onAdd = function (map) {
-    var div = L.DomUtil.create("div", "custom-button");
-    div.innerHTML =
-        '<button onclick="uploadphoto()" >upload photo  <i class="fa-regular fa-circle-right"></i></button>';
-    return div;
-};
+// show location on map
 
-button.addTo(map);
+function onLocationFound(e) {
+    var radius = e.accuracy / 2;
+    L.marker(e.latlng).addTo(map)
+        .bindPopup("You are within " + radius + " meters from this point").openPopup();
+    L.circle(e.latlng, radius).addTo(map);
 
-// for editing layers
+    // Access the coordinates
+    var lat = e.latlng.lat;
+    var lng = e.latlng.lng;
+    console.log("Latitude:", lat);
+    console.log("Longitude:", lng);
+}
+
+function onLocationError(e) {
+    alert(e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
+map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
 
 var editableLayers = new L.FeatureGroup().addTo(map);
 
@@ -144,7 +158,7 @@ function highlightFeature(featureData) {
 editableLayers.on("click", function (e) {
     var latlng = e.latlng;
     var popupContent = '<div>';
-    popupContent += '<button id="saveDataButton" style="background-color:green; border:none; margin:5px; color:white; padding:10px;">Save Data</button>';
+    popupContent += '<button id="saveDataButton" style="background-color:green; border:none; margin:5px; color:white; padding:10px;">Capture Photo</button>';
     popupContent += '<button id="editFeatureButton" style="background-color:green; border:none; margin:5px; color:white; padding:10px;">Edit Feature</button>';
     popupContent += '</div>';
 
@@ -153,114 +167,126 @@ editableLayers.on("click", function (e) {
         .setContent(popupContent)
         .openOn(map);
 
+
     document.getElementById("saveDataButton").addEventListener("click", function () {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            var latLng = L.latLng(latitude, longitude);
-            console.log(latlng)
-            navigator.mediaDevices
-                .getUserMedia({ video: true })
-                .then(function (stream) {
-                    var video = document.createElement("video");
-                    video.srcObject = stream;
-                    video.play();
-
-                    var captureButton = document.createElement("button");
-                    captureButton.textContent = "Capture Photo";
-                    captureButton.onclick = function () {
-                        var canvas = document.createElement("canvas");
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        canvas
-                            .getContext("2d")
-                            .drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                        var img = document.createElement("img");
-                        img.src = canvas.toDataURL("image/jpeg");
-                        var saveButton = document.createElement("button");
-                        saveButton.textContent = "Save";
-                        saveButton.onclick = function () {
-                            var formData = new FormData();
-                            formData.append("image_data", canvas.toDataURL("image/jpeg"));
-                            formData.append("latitude", latlng.lat);
-                            formData.append("longitude", latlng.lng);
-
-                            formData.append("clatitude", latitude);
-                            formData.append("clongitude", longitude);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var latLng = L.latLng(latitude, longitude);
 
 
-                            var csrftoken = getCookie("csrftoken");
-                            $.ajax({
-                                url: "/save_photo/",
-                                type: "POST",
-                                beforeSend: function (xhr, settings) {
-                                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                                },
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                success: function (data) {
-                                    console.log("Photo saved successfully:", data);
-                                },
-                                error: function (xhr, status, error) {
-                                    console.error("Error saving photo:", error);
-                                },
-                            });
+                    console.log(latLng)
+                    navigator.mediaDevices
+                        .getUserMedia({ video: true })
+                        .then(function (stream) {
+                            var video = document.createElement("video");
+                            video.srcObject = stream;
+                            video.play();
 
-                            function getCookie(name) {
-                                var cookieValue = null;
-                                if (document.cookie && document.cookie !== "") {
-                                    var cookies = document.cookie.split(";");
-                                    for (var i = 0; i < cookies.length; i++) {
-                                        var cookie = cookies[i].trim();
-                                        if (cookie.substring(0, name.length + 1) === name + "=") {
-                                            cookieValue = decodeURIComponent(
-                                                cookie.substring(name.length + 1)
-                                            );
-                                            break;
+                            var captureButton = document.createElement("button");
+                            captureButton.textContent = "Capture Photo";
+                            captureButton.onclick = function () {
+                                var canvas = document.createElement("canvas");
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                canvas
+                                    .getContext("2d")
+                                    .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                                var img = document.createElement("img");
+                                img.src = canvas.toDataURL("image/jpeg");
+                                var saveButton = document.createElement("button");
+                                saveButton.textContent = "Save";
+                                saveButton.onclick = function () {
+                                    var formData = new FormData();
+                                    formData.append("image_data", canvas.toDataURL("image/jpeg"));
+                                    formData.append("latitude", latlng.lat);
+                                    formData.append("longitude", latlng.lng);
+
+                                    formData.append("clatitude", latitude);
+                                    formData.append("clongitude", longitude);
+
+
+                                    var csrftoken = getCookie("csrftoken");
+                                    $.ajax({
+                                        url: "/save_photo/",
+                                        type: "POST",
+                                        beforeSend: function (xhr, settings) {
+                                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                                        },
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function (data) {
+                                            console.log("Photo saved successfully:", data);
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.error("Error saving photo:", error);
+                                        },
+                                    });
+
+                                    function getCookie(name) {
+                                        var cookieValue = null;
+                                        if (document.cookie && document.cookie !== "") {
+                                            var cookies = document.cookie.split(";");
+                                            for (var i = 0; i < cookies.length; i++) {
+                                                var cookie = cookies[i].trim();
+                                                if (cookie.substring(0, name.length + 1) === name + "=") {
+                                                    cookieValue = decodeURIComponent(
+                                                        cookie.substring(name.length + 1)
+                                                    );
+                                                    break;
+                                                }
+                                            }
                                         }
+                                        return cookieValue;
                                     }
-                                }
-                                return cookieValue;
-                            }
-                        };
+                                };
 
-                        var popupContent = document.createElement("div");
-                        popupContent.appendChild(img);
-                        popupContent.appendChild(saveButton);
+                                var popupContent = document.createElement("div");
+                                popupContent.appendChild(img);
+                                popupContent.appendChild(saveButton);
 
-                        var popup = L.popup().setContent(popupContent);
-                        L.marker(latlng).addTo(map).bindPopup(popup).openPopup();
-                        popup.on("remove", function () {
-                            stream.getTracks().forEach(function (track) {
-                                track.stop();
-                            });
+                                var popup = L.popup().setContent(popupContent);
+                                L.marker(latlng).addTo(map).bindPopup(popup).openPopup();
+                                popup.on("remove", function () {
+                                    stream.getTracks().forEach(function (track) {
+                                        track.stop();
+                                    });
+                                });
+                            };
+
+                            var popupContent = document.createElement("div");
+                            popupContent.appendChild(video);
+                            popupContent.appendChild(captureButton);
+
+                            var popup = L.popup().setContent(popupContent);
+                            L.marker(latlng).addTo(map).bindPopup(popup).openPopup();
+                        })
+                        .catch(function (err) {
+                            console.error("Error accessing the camera:", err);
                         });
-                    };
-
-                    var popupContent = document.createElement("div");
-                    popupContent.appendChild(video);
-                    popupContent.appendChild(captureButton);
-
-                    var popup = L.popup().setContent(popupContent);
-                    L.marker(latlng).addTo(map).bindPopup(popup).openPopup();
-                })
-                .catch(function (err) {
-                    console.error("Error accessing the camera:", err);
                 });
-        });
+        }
+
+    })
 
 
+    // alert("Save data clicked");
 
-
-        alert("Save data clicked");
-    });
 
     document.getElementById("editFeatureButton").addEventListener("click", function () {
         alert("Edit feature clicked");
     });
+
+
 });
+
+
+
+
 
 
 var layers = ["pmc:world_photo", "pmc:Roads", "pmc:Reservations"];
@@ -299,22 +325,12 @@ map.on("contextmenu", (e) => {
                         contentType: false,
                         success: function (data) {
                             console.log("Photo saved successfully:", data);
-
                             let html = "<div>";
                             html += ` <img src="data:image/png;base64,${data.image_data}" alt="Image"></img>`;
-                            html += `<p> X:${data.X}</p>`;
-                            html += `<p> Y:${data.Y}</p>`;
-
-                            // Add other properties to the popup content
-                            // for (let key in properties) {
-                            //     if (key !== "image_data") {
-                            //         html += `<p>${key}: ${properties[key]}</p>`;
-                            //     }
-                            // }
-                            // html += `<p>${key}: ${properties[key]}</p>`;
-
+                            // html += `<p> X:${data.X}<br>Y:${data.Y}</p>`;
+                            html += `<p> distance between Clicked point and Clicked user Location: ${data.distance}M appx.</p>`;
+                            html += `<p> Clicked Date and Time:${data.dateist}</p>`;
                             html += "</div>";
-                            // console.log(html)
                             L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
                         },
                     });
@@ -418,6 +434,7 @@ function uploadphoto() {
     });
 }
 
+
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== "") {
@@ -433,76 +450,115 @@ function getCookie(name) {
     return cookieValue;
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function (position) {
-                console.log(
-                    "User location:",
-                    position.coords.latitude,
-                    position.coords.longitude
-                );
-                // You can send this location to your Django backend if needed
-            },
-            function (error) {
-                console.error("Error getting user location:", error);
+
+var button = L.control();
+
+button.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'custom-button1');
+    div.innerHTML = '<button onclick="other()" >upload photo  <i class="fa-regular fa-circle-right"></i></button>';
+    return div;
+};
+button.addTo(map);
+
+function other(){
+    alert("faslvalo")
+}
+
+
+
+
+var button = L.control();
+
+button.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'custom-button');
+    div.innerHTML = '<button onclick="timeseries()" >Enable Timeseries <i class="fa-regular fa-circle-right"></i></button>';
+    return div;
+};
+button.addTo(map);
+
+// timeseries()
+function timeseries() {
+
+    var csrftoken = getCookie("csrftoken");
+    $.ajax({
+        url: "/timeseries_photo/",
+        type: "GET",
+        beforeSend: function (xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+        success: function (data) {
+            console.log("Photo saved successfully:", data);
+            // console.log(data.main_data);
+            console.log(data.min_timestamp);
+            console.log(data.max_timestamp);
+            console.log(data.datetimeValues, "datetimeValues")
+
+
+            // for updating the timeslider bar
+            const datetimeSlider = document.getElementById('datetime-slider');
+            const output = document.getElementById('output');
+            const datetimeValues = data.datetimeValues
+            datetimeSlider.min = 0;
+            datetimeSlider.max = datetimeValues.length - 1;  // Since arrays are zero-based
+            datetimeSlider.value = 0;  // Set the initial value to 0
+            datetimeSlider.step = 1;
+
+            function updateDateTimeValue() {
+                const selectedDateTime = datetimeValues[datetimeSlider.value];
+                output.textContent = `Selected Date and Time: ${selectedDateTime.date} ${selectedDateTime.time}`;
+                console.log(selectedDateTime.date, "selectedDateTime.date")
+                var formData = new FormData();
+                formData.append("id", selectedDateTime.id);
+
+                $.ajax({
+                    url: "/timeseries_photo/",
+                    type: "POST",
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        console.log("Photo saved successfully:", data);
+                        puneCoords = L.latLng(data.features[1], data.features[0]);
+
+                        let html = "<div>";
+                        html += ` <img src="data:image/png;base64,${data.image_data}" alt="Image"></img>`;
+                        html += `<p> X:${data.X}<br>Y:${data.Y}</p>`;
+                        html += `<p> distance between Clicked point and Clicked user Location: ${data.distance}M appx.</p>`;
+                        html += `<p> Clicked Date and Time:${data.dateist}</p>`;
+                        html += "</div>";
+                        L.popup().setLatLng(puneCoords).setContent(html).openOn(map);
+                        var bounds = L.latLngBounds([puneCoords]);
+                        map.fitBounds(bounds);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error saving photo:", error);
+                    },
+
+
+                });
+
+                // closing for updatevalue function
+
             }
-        );
-    } else {
-        console.error("Geolocation is not supported by this browser");
-    }
-});
 
-navigator.geolocation.getCurrentPosition(
-    function (position) {
-        console.log(
-            "User location:",
-            position.coords.latitude,
-            position.coords.longitude
-        );
-        // You can send this location to your Django backend if needed
-    },
-    function (error) {
-        console.error("Error getting user location:", error);
-    },
-    { enableHighAccuracy: true }
-);
+            datetimeSlider.addEventListener('input', updateDateTimeValue);
 
-let watchId = navigator.geolocation.watchPosition(
-    function (position) {
-        console.log(
-            "User location:",
-            position.coords.latitude,
-            position.coords.longitude
-        );
-        // You can send this location to your Django backend if needed
-    },
-    function (error) {
-        console.error("Error getting user location:", error);
-    },
-    { enableHighAccuracy: true }
-);
+            updateDateTimeValue();
 
-// show location on map
+            setDates(data.min_timestamp, data.max_timestamp)
+        },
+        error: function (xhr, status, error) {
+            console.error("Error saving photo:", error);
+        },
 
-function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-    } else {
-        alert("Geolocation is not supported by this browser.");
-    }
+
+    });
+
+
+
+
 }
 
-function showPosition(position) {
-    var lat = position.coords.latitude;
-    var lng = position.coords.longitude;
-    var newLatLng = new L.LatLng(lat, lng);
-
-    if (marker) {
-        marker.setLatLng(newLatLng);
-    } else {
-        marker = L.marker(newLatLng).addTo(map);
-    }
-
-    map.setView(newLatLng, 13);
-}

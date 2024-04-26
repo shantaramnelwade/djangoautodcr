@@ -1,23 +1,166 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Leaflet Basemap Example</title>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" type="text/css" href="{% static 'css/style1.css' %}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
- 
+  <title>Leaflet Basemap Example</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/style1.css' %}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
 </head>
+<style>
+  video {
+    width: 47vh;
+  }
+
+  .leaflet-popup-content-wrapper {
+    padding: 1px;
+    text-align: left;
+    border-radius: 12px;
+    width: 54vh;
+  }
+
+  @media only screen and (max-width: 320px) {
+    .leaflet-popup-content-wrapper {
+      padding: 1px;
+      text-align: right;
+      border-radius: 12px;
+      width: 35vh;
+      position: absolute;
+      top: -130px;
+      left: -108px;
+      transform: translateY(-50%);
+    }
+
+    video {
+      width: 29vh;
+
+    }
+  }
+
+
+
+  /* for slider */
+
+  #datetime-slider {
+    top: 20%;
+    /* right: 50%; */
+    width: 80%;
+    margin: 20px auto;
+    z-index: 9999;
+    position: absolute;
+  }
+
+  #output {
+    top: 30%;
+    right: 50%;
+
+    text-align: center;
+    font-size: 20px;
+    z-index: 9999;
+    position: absolute;
+  }
+
+  #datetime-slider1 {
+    top: 10%;
+    right: 50%;
+    z-index: 9999;
+    position: absolute;
+    text-align: center;
+    font-size: 20px;
+  }
+
+  /* 
+</style> */
+
+/* for ticks on map */
+/* Style for the range input */
+input[type="range"] {
+-webkit-appearance: none;
+width: 100%;
+height: 10px;
+background-color: #f1f1f1;
+border-radius: 5px;
+outline: none;
+margin: 20px 0;
+position: relative;
+}
+
+/* Styling the ticks */
+input[type="range"]::before {
+content: "";
+display: block;
+position: absolute;
+left: 0;
+right: 0;
+height: 10px;
+background-color: #ccc;
+border-radius: 5px;
+z-index: -1; /* Ensure ticks are behind the slider */
+}
+
+/* Styling for the ticks themselves */
+input[type="range"]::after {
+content: "";
+display: block;
+position: absolute;
+height: 10px;
+background-color: #333;
+border-radius: 5px;
+z-index: -1; /* Ensure ticks are behind the slider */
+}
+
+/* Adjust the position and size of ticks based on the slider value */
+input[type="range"]::-webkit-slider-runnable-track {
+background: transparent;
+border: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 10px; /* Adjust the width of the ticks */
+height: 10px; /* Adjust the height of the ticks */
+background: #333;
+border-radius: 50%; /* Make it round */
+position: relative;
+z-index: 1; /* Ensure ticks are above the track */
+}
+
+input[type="range"]::-moz-range-thumb {
+width: 10px; /* Adjust the width of the ticks */
+height: 10px; /* Adjust the height of the ticks */
+background: #333;
+border-radius: 50%; /* Make it round */
+position: relative;
+z-index: 1; /* Ensure ticks are above the track */
+}
+
+
+</style>
+
 <body>
-    {% csrf_token %}
-<div id="map"></div>
+  {% csrf_token %}
 
-<!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- <h1>Date and Time Slider Example</h1> -->
+  <label for="datetime-slider" id="datetime-slider1">Select a Date and Time:</label>
+  <input type="range" min="0" max="5" value="0" step="1" id="datetime-slider">
+  <br>
+  <div id="output">Selected Date and Time: </div>
 
-<script src="{% static 'js/libs/leaflet/leaflet.js' %}"></script>
-<script src="{% static 'js/app.js' %}"></script>
+
+  <div id="map"></div>
+
+  <!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/leaflet-timedimension/dist/leaflet.timedimension.min.js"></script>
+
+  <script src="{% static 'js/libs/leaflet/leaflet.js' %}"></script>
+  <script src="{% static 'js/app.js' %}"></script>
+
+
 
 </body>
+
 </html>

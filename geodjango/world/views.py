@@ -97,7 +97,7 @@ def leaflet_map(request):
 
 def geotagPhoto(request):
 
-    return render(request, 'geotag.html')
+    return render(request, 'geotag.html',)
 
 from django.http import JsonResponse
 from .models import Photo
@@ -149,6 +149,10 @@ def save_photo(request):
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import Distance
+from django.contrib.gis.geos import Point
+import pytz
+
 
 def get_photo(request):
     if request.method == 'POST':
@@ -157,17 +161,8 @@ def get_photo(request):
         id = re.sub(r'\D','',str(data))
         print(id,"oooooooooo")
         try:
-            world_photo = Photo.objects.get(id=id)
-            image_data_bytes = bytes(world_photo.image_data)
-            clicked_points = world_photo.clicked_points.coords
-            # features = world_photo.feature.coords
-            # if clicked_points and features:
-            #     distance = clicked_points.distance(features)
-            #     print(distance,"distance")
-            x, y = clicked_points
-            image_data_base64 = base64.b64encode(image_data_bytes).decode('utf-8')
-
-            return JsonResponse({'image_data': image_data_base64,'X':x,'Y':y})
+            main_data = gettimephotos(id)
+            return JsonResponse(main_data)
         except Photo.DoesNotExist:
             return JsonResponse({'error': 'WorldPhoto not found'}, status=404)
      
@@ -175,9 +170,71 @@ def get_photo(request):
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
+from django.db.models.functions import TruncDate, TruncTime
+from django.db.models import Min, Max
+# from django.db import models
+
+def timeseries_photo(request):
+    dates_and_times = Photo.objects.annotate(date=TruncDate('timestamp'), time=TruncTime('timestamp')).values('id','date', 'time')
+    min_timestamp = Photo.objects.annotate(date=TruncDate('timestamp')).aggregate(Min('date'))['date__min']
+    max_timestamp = Photo.objects.annotate(date=TruncDate('timestamp')).aggregate(Max('date'))['date__max']
+    datetimeValues = []
+    for item in dates_and_times:
+        formatted_date = item['date'].strftime('%B %d, %Y')
+        formatted_time = item['time'].strftime('%H:%M')
+        datetimeValues.append({'id': item['id'], 'date': formatted_date, 'time': formatted_time})
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        print(id,"oooooooooo")
+        main_data = gettimephotos(id)
+        return JsonResponse(main_data)
+    
+    return JsonResponse({'min_timestamp': min_timestamp, 'max_timestamp': max_timestamp,'datetimeValues':datetimeValues})
+    
 
 
 def index1(request):
     photo = Photo.objects.get(pk=22)  # Assuming id=1 for simplicity
     image_data = b64encode(photo.image_data).decode('utf-8')
     return render(request, 'index1.html', {'image_data': image_data})
+
+
+
+def gettimephotos(id):
+    world_photo = Photo.objects.get(id=id)
+    image_data_bytes = bytes(world_photo.image_data)
+    clicked_points = world_photo.clicked_points.coords
+    date = world_photo.timestamp
+    ist = pytz.timezone('Asia/Kolkata')
+    dateist = date.astimezone(ist)
+    print(dateist,"date and time")
+    features = world_photo.feature.coords
+    pnt = GEOSGeometry('POINT({} {})'.format(features[1], features[0]), srid=4326)
+    pnt2 = GEOSGeometry('POINT({} {})'.format(clicked_points[1], clicked_points[0]), srid=4326)
+    distance = pnt.distance(pnt2) * 100000  # Distance in meters
+    print("Distance between the two points:", distance)
+    x, y = clicked_points
+    image_data_base64 = base64.b64encode(image_data_bytes).decode('utf-8')
+    main_data = {'image_data': image_data_base64,'X':x,'Y':y,'distance':"{:.2f}".format(distance),'dateist':dateist,'features':features}
+
+    return (main_data)
+
+
+# retriving maximum and minimum data from database for slider
+
+from django.db.models import Min, Max
+from .models import Photo
+
+def my_view(request):
+    if request.method == 'GET':
+        print("hehe")
+    # Retrieve the minimum and maximum timestamp values
+        min_timestamp = Photo.objects.aggregate(Min('timestamp'))['timestamp__min']
+        max_timestamp = Photo.objects.aggregate(Max('timestamp'))['timestamp__max']
+        print(min_timestamp,max_timestamp)
+        context = {
+            'min_timestamp': min_timestamp,
+            'max_timestamp': max_timestamp,
+        }
+
+    return render(request, 'your_template.html', context)

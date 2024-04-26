@@ -33,6 +33,8 @@ class PolygonData(models.Model):
 
 from django.db import models
 from django.contrib.gis.db import models
+from django.utils.html import format_html
+import base64
 
 class Photo(models.Model):
     # image = models.ImageField(upload_to='images/')
@@ -40,9 +42,9 @@ class Photo(models.Model):
     clicked_points = models.PointField()
     feature = models.PointField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    
-    # image_data = models.TextField(blank=True)
 
-    # def __str__(self):
-    #     return self.image.name
+    def image_data_base64_display(self):
+        if self.image_data:
+            self.image_data1 = base64.b64encode(self.image_data).decode('utf-8')
+            return format_html('<img src="data:image/png;base64,{}" width="100"/>', self.image_data1)
 

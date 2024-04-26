@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index, leaflet_map,save_data, geotagPhoto,save_photo,index1,get_photo
+from .views import index, leaflet_map,save_data, geotagPhoto,save_photo,index1,get_photo,timeseries_photo
 
 
 urlpatterns = [
@@ -9,6 +9,8 @@ urlpatterns = [
     path('geotagPhoto/', geotagPhoto, name='geotagPhoto'),
     path('save_photo/', save_photo, name='save_photo'),
     path('get_photo/', get_photo, name='get_photo'),
+    path('timeseries_photo/', timeseries_photo, name='timeseries_photo'),
+    
     path('index1/', index1, name='index1'),
     
     # Add other URL patterns as needed

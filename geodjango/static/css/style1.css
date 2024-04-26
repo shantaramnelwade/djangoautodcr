@@ -30,6 +30,64 @@
     border: none;
    
   }
+
+
+  .custom-button1 {
+    position: absolute;
+    top: 30%;
+    right: 10%;
+    z-index: 1000; /* Ensure the button is above other map elements */
+    background-color: green;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 2px solid green;
+  }
   
+  .custom-button1 button {
+    background-color:green;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    border: none;
+   
+  }
+
+
+  /* for camaera popup */
   
+  video{
+    width: 80%;
+  }
+  .leaflet-popup-content-wrapper {
+    padding: 1px;
+    text-align: left;
+    border-radius: 12px;
+    width: 54vh;
+}
+@media only screen and (max-width: 320px) {
+  .leaflet-popup-content-wrapper {
+    padding: 1px;
+    text-align: right;
+    border-radius: 12px;
+    width: 35vh;
+    position: absolute; 
+    top: -130px; 
+    left: -108px; 
+    transform: translateY(-50%); 
+}
+video{
+  width: 29vh;
+ 
+}
+ }
+  
+
+ .slider{
+  z-index: 9999;
+  position: absolute;
+  right: 50%;
+ }
   

@@ -1,0 +1,60 @@
+
+#map {
+    height: 80vh;
+}
+
+.popup-content {
+    max-width: 200px;
+}
+
+/* Style the buttons */
+.accordion {
+    background-color: #f1f1f1;
+    color: black;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+   
+}
+
+/* Style the active button (highlight the button when clicked on) */
+.active,
+.accordion:hover {
+    background-color: #ddd;
+}
+
+/* Style the accordion panel. Hidden by default */
+.panel {
+    padding: 0 18px;
+    background-color: white;
+    display: none;
+    overflow: hidden;
+}
+
+/* Style the search input */
+input[type=text] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+}
+
+/* Style the checkboxes */
+.checkbox-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style the "Select All" checkbox */
+.select-all {
+    font-weight: bold;
+}
+
+/* Style the checkboxes */
+.checkbox {
+    margin-top: 5px;
+}

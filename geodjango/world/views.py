@@ -64,7 +64,7 @@ def index(request):
         print(unique_village_names)
         villagedata = {'villagedata': unique_village_names}
 
-    return render(request, 'index.html')
+    return render(request, 'index.html',villagedata)
 
 
 
@@ -94,6 +94,17 @@ def leaflet_map(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+# this is for geotagging of photos 
 
 def geotagPhoto(request):
 

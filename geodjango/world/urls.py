@@ -6,6 +6,8 @@ urlpatterns = [
     path('', index, name='index'),
     path('leaflet_map/', leaflet_map, name='leaflet_map'),
     path('save_data/', save_data, name='save_data'),
+
+    
     path('geotagPhoto/', geotagPhoto, name='geotagPhoto'),
     path('save_photo/', save_photo, name='save_photo'),
     path('get_photo/', get_photo, name='get_photo'),

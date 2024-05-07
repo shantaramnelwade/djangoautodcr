@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PMC</title>
 
-    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style_dashboard.css' %}">
     <!-- <link rel="stylesheet" href="style.css"> -->
     <!-- <link rel="stylesheet" href="C_form.css"> -->
     <link rel="icon" href="png/pmcjpeg.png" type="image/x-icon">
@@ -34,53 +34,31 @@
 </head>
 
 <body>
-
-    <header class="header justify-content-between bg-transparent" id="header">
-        <h5>Geopulse</h5>
-
-        <div >
-            {% csrf_token %}
-            <select id="search_type" class="">
-                <option value="">Select Village</option>
-            </select>
-        </div>
-
-        <div class="accordion">
-            <div class="accordion-item">
-                <div class="accordion-header">Section 2</div>
-                <div class="dropdown-list" style="display: none;">
-                    <input type="search" placeholder="SurveyNo/CTC/Plot" class="dropdown-search ps-2" />
-                    <ul id="stateList"></ul>
-            </div>
-        </div>
-
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script>
-            $(document).ready(function () {
-                $('.accordion-header').click(function () {
-                    $(this).next('.dropdown-list').slideToggle();
-                });
-
-                var optionsArray = ["O1", "O 2", "On 3", "O 4"];
-
-               
-        var stateList = $('#stateList');
-        stateList.empty();
-        // console.log(stateList,"stateList")
-        _.each(optionsArray, function (state) {
-            var listItem = $('<li><input name="' + state + '" type="checkbox"><label for="' + state + '">' + state + '</label></li>');
-            stateList.append(listItem);
-        });
-            });
-        </script>
-
-    </header>
-
-
-    <div id="content">
-        <div id="map"></div>
+    <button class="accordion">Button 1</button>
+    <div class="panel">
+        <span class="selected-count">0 selected</span>
+        <input type="text" placeholder="Search..." oninput="filterOptions(this)">
+      <div class="checkbox-container" id="checkbox-container"> </div>
+      <!-- <label class="checkbox"><input type="checkbox" onchange="updateSelectedCount(this)"> {{villagedata}}</label> -->
+      {% for village in villagedata %}
+      <label class="checkbox"><input type="checkbox" onchange="updateSelectedCount(this)"> {{ village }}</label><br>
+      {% endfor %}
+            <!-- {{villagedata}} -->
     </div>
+
+    <button class="accordion">Button 2</button>
+    <div class="panel">
+        <span class="selected-count">0 selected</span>
+        <input type="text" placeholder="Search..." oninput="filterOptions(this)">
+        <div class="checkbox-container">
+            <label class="select-all"><input type="checkbox" onclick="toggleCheckboxes(this)"> Select All</label>
+            <label class="checkbox"><input type="checkbox" onchange="updateSelectedCount(this)"> Option 1</label>
+            <label class="checkbox"><input type="checkbox" onchange="toggleCheckboxes(this)"> Option 2</label>
+            <label class="checkbox"><input type="checkbox" onchange="toggleCheckboxes(this)"> Option 3</label>
+        </div>
+    </div>
+    <div id="map" style="height: 700px;"></div>
+
 
 
 
@@ -112,22 +90,10 @@
     <script src="{% static 'js/libs/sweetalert2@10.js' %}"></script>
 
 
-    <!-- 
-    <script src="select2.js"></script>
-    <script src="auto.js"></script> -->
-    <!-- Assuming your static files are located in a directory named 'static' -->
     <script src="{% static 'js/select2.js' %}"></script>
 
-    <script src="{% static 'js/auto.js' %}"></script>
+    <script src="{% static 'js/auto_dashboard.js' %}"></script>
 
-
-
-
-
-    <script>
-
-
-    </script>
 </body>
 
 </html>

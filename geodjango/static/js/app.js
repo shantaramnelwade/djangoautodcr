@@ -46,7 +46,7 @@ var Revenue_Layer1 = L.tileLayer.wms(
 );
 
 var world_photo = L.tileLayer
-    .wms("http://localhost:8080/geoserver/pmc/wms", {
+    .wms("https://iwmsgis.pmc.gov.in/geoserver/django/wms", {
         layers: "world_photo",
         format: "image/png",
         transparent: true,
@@ -295,7 +295,7 @@ map.on("contextmenu", (e) => {
     let size = map.getSize();
     for (let i = 0; i < layers.length; i++) {
         let layer = layers[i];
-        let url = `http://localhost:8080/geoserver/pmc/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=${layer}&STYLES&LAYERS=${layer}&exceptions=application%2Fvnd.ogc.se_inimage&INFO_FORMAT=application/json&FEATURE_COUNT=50&X=${Math.round(
+        let url = `https://iwmsgis.pmc.gov.in/geoserver/django/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=${layer}&STYLES&LAYERS=${layer}&exceptions=application%2Fvnd.ogc.se_inimage&INFO_FORMAT=application/json&FEATURE_COUNT=50&X=${Math.round(
             e.containerPoint.x
         )}&Y=${Math.round(e.containerPoint.y)}&SRS=EPSG%3A4326&WIDTH=${size.x
             }&HEIGHT=${size.y}&BBOX=${bbox}`;

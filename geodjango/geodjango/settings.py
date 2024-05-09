@@ -79,10 +79,10 @@ WSGI_APPLICATION = 'geodjango.wsgi.application'
 DATABASES = {
      'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'postgres',
+        'NAME': 'geodjango',
         'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
+        'PASSWORD': 'pmc992101',
+        'HOST': 'iwmsgis.pmc.gov.in',
         'PORT': '5432',
     }
 }

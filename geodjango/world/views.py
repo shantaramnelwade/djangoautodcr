@@ -6,8 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 import requests
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import PolygonData
-import json
+
 import requests
 from django.shortcuts import render
 from .models import Photo
@@ -20,86 +19,77 @@ from django.contrib.gis.geos import Point
 
 
 
-from django.http import JsonResponse
+# from django.http import JsonResponse
 
-base_url = 'https://portal.geopulsea.com/geoserver/AutoDCR/wms?'
-def save_data(request):
-    # print("hehehehehe")
-    if request.method == 'POST':
-        Village_name = request.POST.get('Village')
-        print(Village_name,"Village_name")  # Print the filters to the console
-        filters = ""  
-        if Village_name:
-            filters = {'village_name': "'{}'".format(Village_name)}
-            encoded_filters = urlencode(filters)
+# base_url = 'https://portal.geopulsea.com/geoserver/AutoDCR/wms?'
+# def save_data(request):
+#     # print("hehehehehe")
+#     if request.method == 'POST':
+#         Village_name = request.POST.get('Village')
+#         print(Village_name,"Village_name")  # Print the filters to the console
+#         filters = ""  
+#         if Village_name:
+#             filters = {'village_name': "'{}'".format(Village_name)}
+#             encoded_filters = urlencode(filters)
             
-        cql_filter_url = f'{base_url}service=WFS&version=1.1.0&request=GetFeature&typeName=Revenue_1&propertyName=Gut_No&outputFormat=application/json&CQL_FILTER={encoded_filters}'
-        response = requests.get(cql_filter_url)
-        gut_noo = []
-        if response.status_code == 200:
-            data = response.json()
-            for feature in data['features']:
-                gut_no = feature['properties']['Gut_No']
-                gut_noo.append(gut_no)
-            # print(len(gut_noo))
-        else:
-            print("Failed to fetch data:", response.status_code)
+#         cql_filter_url = f'{base_url}service=WFS&version=1.1.0&request=GetFeature&typeName=Revenue_1&propertyName=Gut_No&outputFormat=application/json&CQL_FILTER={encoded_filters}'
+#         response = requests.get(cql_filter_url)
+#         gut_noo = []
+#         if response.status_code == 200:
+#             data = response.json()
+#             for feature in data['features']:
+#                 gut_no = feature['properties']['Gut_No']
+#                 gut_noo.append(gut_no)
+#             # print(len(gut_noo))
+#         else:
+#             print("Failed to fetch data:", response.status_code)
 
-        return JsonResponse({'options': gut_noo})
-    return JsonResponse({'message': 'Invalid request method.'}, status=400)
-
-
-
-def index(request):
-    main_url = f'{base_url}service=WFS&version=1.1.0&request=GetFeature&typeName=Revenue_1&propertyName=village_name&outputFormat=application/json'
-    response = requests.get(main_url)
-    if response.status_code == 200:
-        data = response.json()
-        features = data['features']
-        unique_village_names = set()
-        for feature in features:
-            village_name = feature['properties']['village_name']
-            unique_village_names.add(village_name)
-        unique_village_names = list(unique_village_names)
-        print(unique_village_names)
-        villagedata = {'villagedata': unique_village_names}
-
-    return render(request, 'index.html',villagedata)
+#         return JsonResponse({'options': gut_noo})
+#     return JsonResponse({'message': 'Invalid request method.'}, status=400)
 
 
 
+# def index(request):
+#     main_url = f'{base_url}service=WFS&version=1.1.0&request=GetFeature&typeName=Revenue_1&propertyName=village_name&outputFormat=application/json'
+#     response = requests.get(main_url)
+#     if response.status_code == 200:
+#         data = response.json()
+#         features = data['features']
+#         unique_village_names = set()
+#         for feature in features:
+#             village_name = feature['properties']['village_name']
+#             unique_village_names.add(village_name)
+#         unique_village_names = list(unique_village_names)
+#         print(unique_village_names)
+#         villagedata = {'villagedata': unique_village_names}
 
-
-def leaflet_map(request):
-    # Fetch villages from GeoServer WFS service
-    village_url = 'https://pmc.geopulsea.com/geoserver/pmc/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pmc:Revenue&propertyName=Village_Name&outputFormat=application/json'
-    village_response = requests.get(village_url)
-    villages = set([feature['properties']['Village_Name'] for feature in village_response.json()['features']])
-
-    # Fetch layer names from GeoServer REST API
-    geoserver_url = 'https://pmc.geopulsea.com/geoserver/rest/workspaces/pmc/layers.json'
-    response = requests.get(geoserver_url, auth=('admin', 'geoserver'))
-    workspace_data = response.json()
-    layer_names = [layer['name'] for layer in workspace_data['layers']['layer']]
-
-    if request.method == 'POST':
-        selected_village = request.POST.get('village', '')
-        selected_gut = request.POST.get('gut', '')
-
-    context = {
-        'villages': villages,
-        'layer_names': layer_names
-    }
-    return render(request, 'world/leaflet_map.html', context)
+#     return render(request, 'index.html',villagedata)
 
 
 
 
 
+# def leaflet_map(request):
+#     # Fetch villages from GeoServer WFS service
+#     village_url = 'https://pmc.geopulsea.com/geoserver/pmc/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pmc:Revenue&propertyName=Village_Name&outputFormat=application/json'
+#     village_response = requests.get(village_url)
+#     villages = set([feature['properties']['Village_Name'] for feature in village_response.json()['features']])
 
+#     # Fetch layer names from GeoServer REST API
+#     geoserver_url = 'https://pmc.geopulsea.com/geoserver/rest/workspaces/pmc/layers.json'
+#     response = requests.get(geoserver_url, auth=('admin', 'geoserver'))
+#     workspace_data = response.json()
+#     layer_names = [layer['name'] for layer in workspace_data['layers']['layer']]
 
+#     if request.method == 'POST':
+#         selected_village = request.POST.get('village', '')
+#         selected_gut = request.POST.get('gut', '')
 
-
+#     context = {
+#         'villages': villages,
+#         'layer_names': layer_names
+#     }
+#     return render(request, 'world/leaflet_map.html', context)
 
 
 

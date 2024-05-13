@@ -158,8 +158,8 @@ function highlightFeature(featureData) {
 editableLayers.on("click", function (e) {
     var latlng = e.latlng;
     var popupContent = '<div>';
-    popupContent += '<button id="saveDataButton" style="background-color:green; border:none; margin:5px; color:white; padding:10px;">Capture Photo</button>';
-    popupContent += '<button id="editFeatureButton" style="background-color:green; border:none; margin:5px; color:white; padding:10px;">Edit Feature</button>';
+    popupContent += '<button id="saveDataButton">Capture Photo</button>';
+    popupContent += '<button id="editFeatureButton">Edit Feature</button>';
     popupContent += '</div>';
 
     var popup = L.popup()
@@ -326,7 +326,7 @@ map.on("contextmenu", (e) => {
                         success: function (data) {
                             console.log("Photo saved successfully:", data);
                             let html = "<div>";
-                            html += ` <img src="data:image/png;base64,${data.image_data}" alt="Image"></img>`;
+                            html += ` <img src="data:image/png;base64,${data.image_data}"  alt="Image"></img>`;
                             // html += `<p> X:${data.X}<br>Y:${data.Y}</p>`;
                             html += `<p> distance between Clicked point and Clicked user Location: ${data.distance}M appx.</p>`;
                             html += `<p> Clicked Date and Time:${data.dateist}</p>`;
@@ -410,6 +410,7 @@ function uploadphoto() {
 
                     var popupContent = document.createElement("div");
                     popupContent.appendChild(img);
+                    
                     popupContent.appendChild(saveButton);
 
                     var popup = L.popup().setContent(popupContent);
@@ -451,33 +452,40 @@ function getCookie(name) {
 }
 
 
-var button = L.control();
+// var button = L.control();
 
-button.onAdd = function (map) {
-    var div = L.DomUtil.create('div', 'custom-button1');
-    div.innerHTML = '<button onclick="other()" >upload photo  <i class="fa-regular fa-circle-right"></i></button>';
-    return div;
-};
-button.addTo(map);
+// button.onAdd = function (map) {
+//     var div = L.DomUtil.create('div', 'custom-button1');
+//     div.innerHTML = '<button onclick="other()">upload photo  <i class="fa-regular fa-circle-right"></i></button>';
+//     return div;
+// };
+// button.addTo(map);
 
-function other(){
-    alert("faslvalo")
-}
-
-
+// function other(){
+//     alert("faslvalo")
+// }
 
 
-var button = L.control();
 
-button.onAdd = function (map) {
-    var div = L.DomUtil.create('div', 'custom-button');
-    div.innerHTML = '<button onclick="timeseries()" >Enable Timeseries <i class="fa-regular fa-circle-right"></i></button>';
-    return div;
-};
-button.addTo(map);
 
-// timeseries()
-function timeseries() {
+    var button = L.control();
+
+    button.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'custom-button');
+        div.innerHTML = '<button onclick="timeseries()" >Enable Timeseries <i class="fa-regular fa-circle-right"></i></button>'
+        ;
+        return div;
+    };
+    button.addTo(map);
+
+    // timeseries()
+    function timeseries() {
+        var newDiv = document.createElement("div");
+    
+    // Append the new div to the body or any other desired element
+        document.body.appendChild(newDiv);
+    
+        
 
     var csrftoken = getCookie("csrftoken");
     $.ajax({
@@ -524,7 +532,7 @@ function timeseries() {
                         puneCoords = L.latLng(data.features[1], data.features[0]);
 
                         let html = "<div>";
-                        html += ` <img src="data:image/png;base64,${data.image_data}" alt="Image"></img>`;
+                        html += ` <img src="data:image/png;base64,${data.image_data}" alt="Image" style="width: 100px;"</img>`;
                         html += `<p> X:${data.X}<br>Y:${data.Y}</p>`;
                         html += `<p> distance between Clicked point and Clicked user Location: ${data.distance}M appx.</p>`;
                         html += `<p> Clicked Date and Time:${data.dateist}</p>`;

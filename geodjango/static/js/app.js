@@ -221,6 +221,8 @@ editableLayers.on("click", function (e) {
                                         contentType: false,
                                         success: function (data) {
                                             console.log("Photo saved successfully:", data);
+                                            alert("Photo saved successfully!");
+
                                         },
                                         error: function (xhr, status, error) {
                                             console.error("Error saving photo:", error);
@@ -289,8 +291,8 @@ editableLayers.on("click", function (e) {
 
 
 
-var layers = ["pmc:world_photo", "pmc:Roads", "pmc:Reservations"];
-map.on("contextmenu", (e) => {
+var layers = ["pmc:world_photo"];
+map.on("dblclick", (e) => {
     let bbox = map.getBounds().toBBoxString();
     let size = map.getSize();
     for (let i = 0; i < layers.length; i++) {
@@ -332,6 +334,8 @@ map.on("contextmenu", (e) => {
                             html += `<p> Clicked Date and Time:${data.dateist}</p>`;
                             html += "</div>";
                             L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+
+                    
                         },
                     });
                 }
@@ -384,6 +388,23 @@ function uploadphoto() {
                             contentType: false,
                             success: function (data) {
                                 console.log("Photo saved successfully:", data);
+                                  // Display a successful alert popup
+                                  function showAlert(message, color) {
+                                    var alertBox = document.getElementById("customAlert");
+                                    var alertMessage = document.getElementById("alertMessage");
+                                  
+                                    alertMessage.innerHTML = message;
+                                    alertBox.style.backgroundColor = color;
+                                    alertBox.style.display = "block";
+                                  
+                                    setTimeout(function () {
+                                      alertBox.style.display = "none";
+                                    }, 2000); // Hide after 2 seconds
+                                  }
+                                  
+                                  // Usage
+                                  showAlert("Photo saved successfully!", "#4CAF50"); // Green color
+                                  
                             },
                             error: function (xhr, status, error) {
                                 console.error("Error saving photo:", error);
@@ -465,18 +486,68 @@ function getCookie(name) {
 //     alert("faslvalo")
 // }
 
+var button = L.control();
+
+button.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'custom-button');
+    var input = document.createElement('input');
+    input.setAttribute('type', 'range');
+    input.setAttribute('min', '0');
+    input.setAttribute('max', '10');
+    input.setAttribute('value', '0');
+    input.setAttribute('step', '1');
+    var timeLabel = document.createElement('span');
+    timeLabel.setAttribute('id', 'timeLabel');
+    timeLabel.textContent = '0';
 
 
+   
+    input.setAttribute('id', 'datetime-slider');
+    input.style.display = 'none'; 
+  
+    var buttonElement = document.createElement('button');
+    buttonElement.innerHTML = '<i class="far fa-clock"></i>';
 
-    var button = L.control();
 
-    button.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'custom-button');
-        div.innerHTML = '<button onclick="timeseries()" >Enable Timeseries <i class="fa-regular fa-circle-right"></i></button>'
-        ;
-        return div;
+    buttonElement.onclick = function() {
+        if (input.style.display === 'none') {
+            input.style.display = 'block'; 
+        } else {
+            input.style.display = 'none'; 
+        }
+        var outputDiv = document.getElementById('output');
+        if (outputDiv.style.display === 'none') {
+            outputDiv.style.display = 'block'; 
+        } else {
+            outputDiv.style.display = 'none';
+        }
+        timeseries(); 
     };
-    button.addTo(map);
+
+    div.appendChild(buttonElement);
+    div.appendChild(input);
+    
+    
+
+    return div;
+};
+
+button.addTo(map);
+
+
+
+// var button = L.control();
+
+// button.onAdd = function (map) {
+//     var div = L.DomUtil.create('div', 'custom-button');
+//     div.innerHTML = `
+//         <button onclick="timeseries()">Enable Timeseries <i class="fa-regular fa-circle-right"></i>
+//         </button>
+//     `;
+   
+//     return div;
+// };
+//     button.addTo(map);
 
     // timeseries()
     function timeseries() {
@@ -494,8 +565,11 @@ function getCookie(name) {
         beforeSend: function (xhr, settings) {
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
         },
+        
         success: function (data) {
             console.log("Photo saved successfully:", data);
+            // Display a successful alert popup
+            alert("Photo saved successfully!");
             // console.log(data.main_data);
             console.log(data.min_timestamp);
             console.log(data.max_timestamp);
@@ -565,7 +639,13 @@ function getCookie(name) {
 
     });
 
-
+    document.getElementById('datetime-slider').addEventListener('input', function() {
+        // Get the selected date and time from the slider
+        var selectedDateTime = this.value;
+    
+        // Update the output div with the selected date and time
+        document.getElementById('output').innerText = 'Selected Date and Time: ' + selectedDateTime;
+    });
 
 
 }

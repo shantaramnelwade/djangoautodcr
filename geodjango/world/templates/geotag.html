@@ -11,36 +11,47 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <style>
+
     /* mobile view */
     @media (max-width: 767px) {
       .leaflet-touch .leaflet-control-layers-toggle {
         width: 30px;
         height: 30px;
       }
-      #datetime-slider {
-        top: 20%;
-        right: 70%;
-        width: 20%;
-        margin: 20px auto;
-        z-index: 9999;
-        position: absolute;
+      .leaflet-control {
+        float: left;
+        /* clear: both; */
       }
+
       .leaflet-touch .leaflet-control-layers,
       .leaflet-touch .leaflet-bar {
         border: 2px solid rgba(0, 0, 0, 0.2);
         background-clip: padding-box;
         border: 2px solid darkblue;
       }
-      .custom-button1 button {
-        background-color: green;
-        color: white;
+      .custom-button button {
+        /* background-color: green; */
+        color: black;
         font-weight: bold;
-        font-size: 10px;
-        padding: 2px 4px; /* Adjust padding as needed */
-        border: none;
+        font-size: 13px;
+        top: 10px;
+        right: 1079px;
+        width: 35px;
+        border: 2px solid darkblue;
+        position: fixed;
+        border-radius: 5px;
+        padding: 7px 9px;
       }
+     
       .custom-button1 {
         /* position: sticky; */
         top: -43px;
@@ -55,29 +66,7 @@
         cursor: pointer;
         border: 2px solid green;
       }
-      .custom-button button {
-        background-color: green;
-        color: white;
-        font-weight: bold;
-        font-size: 10px;
-        padding: 2px 4px;
-        border: none;
-      }
-      .custom-button {
-        /* position: absolute; */
-        /* top: 50%; */
-        /* right: -30%; */
-        z-index: 1000;
-        background-color: green;
-        border-radius: 5px;
-        padding: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 5px 10px;
-        cursor: pointer;
-        border: 2px solid green;
-        bottom: 12px;
-        top: -45px;
-      }
+
       .leaflet-popup-content {
         /* margin: 13px 24px 13px 20px; */
         line-height: 1.3;
@@ -86,7 +75,7 @@
         font-size: 1.08333em;
         min-height: 1px;
         font-weight: bold;
-        /* margin: 5px; */
+        margin: 4px;
         /* left: 20px; */
       }
 
@@ -103,12 +92,12 @@
       .leaflet-popup-tip {
         background: white;
         color: #333;
-        width: 40vh;
+        width: 33vh;
         margin-left: 25px;
         font-size: 9px;
         box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
-        
       }
+
       #saveDataButton {
         background-color: green;
         border: none;
@@ -130,65 +119,132 @@
         background-color: #f4f4f4;
         /* color: #bbb; */
       }
-      #datetime-slider1 {
-        top: 15%;
-        right: 50%;
-        z-index: 9999;
-        position: absolute;
-        text-align: center;
-        font-size: 15px;
-      }
+
       #output {
-        top: 30%;
-        right: 50%;
+        top: 10%;
+        right: 28%;
+        left: 70px;
         text-align: center;
         font-size: 15px;
         z-index: 9999;
         position: absolute;
+        font-weight: bold;
       }
+      #datetime-slider {
+        top: -53px;
+        /* right: -40%; */
+        left: -200px;
+        width: 100px;
+        margin: 20px auto;
+        z-index: 9999;
+        position: absolute;
       }
-      /* @media only screen and (min-width: 428px){
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-        background: white;
-        color: #333;
-        width: 30vh;
-        margin-left: 60px;
-        font-size: 10px;
-        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
     }
-} */
 
-
-
-      
+    .alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: #f44336; /* Red color */
+      color: white;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+      display: none; /* Hide it by default */
+    }
+    .slider-line {
+      height: 2px; /* Adjust height as needed */
+      width: 100%; /* Adjust width as needed */
+      background-color: black; /* Adjust color as needed */
+      margin-top: 5px; /* Adjust margin as needed */
+    }
   </style>
 
   <body>
     {% csrf_token %}
 
     <!-- <h1>Date and Time Slider Example</h1> -->
-    <label for="datetime-slider" id="datetime-slider1"
+    <!-- <label for="datetime-slider" id="datetime-slider1"
       >Select a Date and Time:</label
-    >
-    <input
-      type="range"
-      min="0"
-      max="5"
-      value="0"
-      step="1"
-      id="datetime-slider"
-    />
-
+    > -->
     <br />
-    <div id="output">Selected Date and Time:</div>
+    <div id="output" style="display: none">Selected Date and Time:</div>
+    <button id="buttonElement"></button>
+    <div id="controls">
+      <!-- <div id="dataPoints"></div> -->
+      <input type="range" id="timeRange" min="0" max="100" value="0" />
+      <span id="timeLabel"></span>
+      <span id="dataPoints"> </span>
+    </div>
 
     <div id="map"></div>
-    
     <!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/leaflet-timedimension/dist/leaflet.timedimension.min.js"></script>
 
     <script src="{% static 'js/libs/leaflet/leaflet.js' %}"></script>
     <script src="{% static 'js/app.js' %}"></script>
+    <script>
+      const dataPoints = [
+        { time: 0, value: 10 },
+        { time: 10, value: 20 },
+        { time: 20, value: 30 },
+        { time: 30, value: 25 },
+        { time: 40, value: 40 },
+        { time: 50, value: 35 },
+        { time: 60, value: 45 },
+        { time: 70, value: 50 },
+        { time: 80, value: 55 },
+        { time: 90, value: 60 },
+        { time: 100, value: 65 },
+      ];
+
+      // Function to update visualization based on time
+      function updateTimeSeries(time) {
+        // Logic to update visualization based on time goes here
+        console.log("Time updated to: ", time);
+      }
+
+      // Function to render data points
+      function renderDataPoints() {
+    const dataPointsContainer = document.getElementById("dataPoints");
+    dataPointsContainer.innerHTML = "";
+
+    dataPoints.forEach((point, index) => {
+        const dataPoint = document.createElement("div");
+        dataPoint.classList.add("dataPoint");
+        dataPoint.style.left = point.time + "%"; // corrected line
+
+        // Add click event listener
+        dataPoint.addEventListener("click", () => {
+            // Handle click event here, for example, log the index of the clicked data point
+            console.log("Clicked data point index:", index);
+        });
+
+        dataPointsContainer.appendChild(dataPoint);
+    });
+}
+
+// Initialize
+document.addEventListener("DOMContentLoaded", function () {
+    const timeRange = document.getElementById("timeRange");
+    const timeLabel = document.getElementById("timeLabel");
+
+    timeRange.addEventListener("input", function () {
+        const currentTime = parseInt(this.value);
+        timeLabel.textContent = currentTime;
+        updateTimeSeries(currentTime);
+    });
+
+    renderDataPoints();
+    dataPoint.addEventListener("click", () => {
+    // Display time and value of the clicked data point
+    console.log("Clicked data point - Time:", point.time, "Value:", point.value);
+});
+
+});
+
+    </script>
   </body>
 </html>

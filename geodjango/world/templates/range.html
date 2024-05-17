@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Series </title>
+  <style>
+    body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  /* #map {
+    width: 100%;
+    height: calc(100% - 50px);
+    background-color: #f0f0f0;
+  } */
+  
+  /* #controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    padding: 10px;
+    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+  } */
+  
+  #timeRange {
+    width: 80%;
+  }
+  
+  #timeLabel {
+    margin-left: 10px;
+  }
+  
+  #dataPoints {
+    width: 100%;
+    height: 9px;
+    position: absolute;
+    left: -87px;
+    z-index: 9999;
+    top: 14px;
+  }
+  
+  .dataPoint {
+    position: absolute;
+    background-color: red;
+    width: 2px;
+    height: 10px;
+  }
+  </style>
+
+</head>
+<body>
+  <div id="map"></div>
+  <div id="controls">
+    <!-- <div id="dataPoints"></div> -->
+    <input type="range" id="timeRange" min="0" max="100" value="0">
+    <span id="timeLabel">0</span>
+    <span  id="dataPoints"></span>
+  </div>
+
+ <script>
+  // Sample data for demonstration
+const dataPoints = [
+    { time: 0, value: 10 },
+    { time: 10, value: 20 },
+    { time: 20, value: 30 },
+    { time: 30, value: 25 },
+    { time: 40, value: 40 },
+    { time: 50, value: 35 },
+    { time: 60, value: 45 },
+    { time: 70, value: 50 },
+    { time: 80, value: 55 },
+    { time: 90, value: 60 },
+    { time: 100, value: 65 }
+  ];
+  
+  // Function to update visualization based on time
+  function updateTimeSeries(time) {
+    // Logic to update visualization based on time goes here
+    console.log("Time updated to: ", time);
+  }
+  
+  // Function to render data points
+  function renderDataPoints() {
+    const dataPointsContainer = document.getElementById("dataPoints");
+    dataPointsContainer.innerHTML = "";
+    
+    dataPoints.forEach(point => {
+      const dataPoint = document.createElement("div");
+      dataPoint.classList.add("dataPoint");
+  
+      dataPointsContainer.appendChild(dataPoint);
+    });
+  }
+  
+  // Initialize
+  document.addEventListener("DOMContentLoaded", function() {
+    const timeRange = document.getElementById("timeRange");
+    const timeLabel = document.getElementById("timeLabel");
+  
+    timeRange.addEventListener("input", function() {
+      const currentTime = parseInt(this.value);
+      timeLabel.textContent = currentTime;
+      updateTimeSeries(currentTime);
+    });
+  
+    renderDataPoints();
+  });
+ </script>
+</body>
+</html>
